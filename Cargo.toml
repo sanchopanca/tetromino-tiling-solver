@@ -1,0 +1,14 @@
+[package]
+name = "tetramino-tiling-solver"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"] # wasm and native
+name = "tetramino"
+path = "src/lib.rs"
+
+[dependencies]
+js-sys = "0.3.67"
+wasm-bindgen = "0.2.90"
+web-sys = "0.3.4"

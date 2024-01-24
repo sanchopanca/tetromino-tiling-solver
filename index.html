@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+  </head>
+  <body>
+    <!-- Note the usage of `type=module` here as this is an ES6 module -->
+    <script type="module">
+      import init, { solve_tetramino } from './pkg/tetramino.js';
+      await init();
+      let solution = solve_tetramino(3, 4, ['T', 'T', 'J']);
+      console.log(solution);
+
+    </script>
+  </body>
+</html>
