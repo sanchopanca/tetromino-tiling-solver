@@ -1,4 +1,4 @@
-use tetramino::{print_figure, solve, Shape, Tetramino};
+use tetromino::{print_figure, solve, Shape, Tetromino};
 
 fn main() {
     let n_rows = 8;
@@ -9,22 +9,22 @@ fn main() {
     let result = solve(
         &field,
         &[
-            Tetramino::new(Shape::O),
-            Tetramino::new(Shape::I),
-            // Tetramino::new(Shape::O),
-            // Tetramino::new(Shape::I),
-            Tetramino::new(Shape::T),
-            Tetramino::new(Shape::T),
-            // Tetramino::new(Shape::T),
-            // Tetramino::new(Shape::T),
-            Tetramino::new(Shape::L),
-            // Tetramino::new(Shape::L),
-            Tetramino::new(Shape::Z),
-            // Tetramino::new(Shape::Z),
-            Tetramino::new(Shape::O),
-            // Tetramino::new(Shape::O),
-            Tetramino::new(Shape::I),
-            // Tetramino::new(Shape::I),
+            Tetromino::new(Shape::O),
+            Tetromino::new(Shape::I),
+            // Tetromino::new(Shape::O),
+            // Tetromino::new(Shape::I),
+            Tetromino::new(Shape::T),
+            Tetromino::new(Shape::T),
+            // Tetromino::new(Shape::T),
+            // Tetromino::new(Shape::T),
+            Tetromino::new(Shape::L),
+            // Tetromino::new(Shape::L),
+            Tetromino::new(Shape::Z),
+            // Tetromino::new(Shape::Z),
+            Tetromino::new(Shape::O),
+            // Tetromino::new(Shape::O),
+            Tetromino::new(Shape::I),
+            // Tetromino::new(Shape::I),
         ],
     );
 

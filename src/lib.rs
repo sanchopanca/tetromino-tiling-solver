@@ -31,14 +31,14 @@ impl std::fmt::Display for Shape {
 }
 
 #[derive(Debug)]
-pub struct Tetramino {
+pub struct Tetromino {
     figure: Vec<Vec<Option<Shape>>>,
     shape: Shape,
 }
 
-impl Tetramino {
-    pub fn new(shape: Shape) -> Tetramino {
-        Tetramino {
+impl Tetromino {
+    pub fn new(shape: Shape) -> Tetromino {
+        Tetromino {
             figure: match shape {
                 Shape::I => vec![
                     vec![Some(shape)],
@@ -92,7 +92,7 @@ impl Tetramino {
     }
 }
 
-impl std::fmt::Display for Tetramino {
+impl std::fmt::Display for Tetromino {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         print_figure_to_formatter(&self.figure, f)
     }
@@ -134,7 +134,7 @@ fn rotate<T: Copy>(figure: &[Vec<Option<T>>]) -> Vec<Vec<Option<T>>> {
 
 pub fn solve(
     field: &[Vec<Option<Shape>>],
-    figures: &[Tetramino],
+    figures: &[Tetromino],
 ) -> Option<Vec<Vec<Option<Shape>>>> {
     if figures.is_empty() {
         if is_solved(field) {
@@ -243,7 +243,7 @@ fn convert_solution(solution: Vec<Vec<Option<Shape>>>) -> Array {
 }
 
 #[wasm_bindgen]
-pub fn solve_tetramino(height: u32, width: u32, shapes: Array) -> Array {
+pub fn solve_tetromino(height: u32, width: u32, shapes: Array) -> Array {
     let shapes: Vec<Shape> = shapes
         .to_vec()
         .iter()
@@ -265,10 +265,10 @@ pub fn solve_tetramino(height: u32, width: u32, shapes: Array) -> Array {
         })
         .collect();
     let field = vec![vec![None; width as usize]; height as usize];
-    let tetraminos = shapes
+    let tetrominos = shapes
         .iter()
-        .map(|x| Tetramino::new(*x))
-        .collect::<Vec<Tetramino>>();
-    let result = solve(&field, &tetraminos);
+        .map(|x| Tetromino::new(*x))
+        .collect::<Vec<Tetromino>>();
+    let result = solve(&field, &tetrominos);
     convert_solution(result.expect("Solution wasn't found"))
 }

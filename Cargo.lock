@@ -65,7 +65,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tetramino-tiling-solver"
+name = "tetromino-tiling-solver"
 version = "0.1.0"
 dependencies = [
  "js-sys",
