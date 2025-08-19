@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tetromino Tiling Solver Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 350px;
+            flex-shrink: 0;
+        }
+        
+        .visualization {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex: 1;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider {
+            flex: 1;
+        }
+        
+        .pieces-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .piece-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .piece-selector:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .piece-selector.selected {
+            border-color: #007bff;
+            background-color: #e7f3ff;
+        }
+        
+        .piece-preview {
+            display: grid;
+            gap: 2px;
+            margin-bottom: 5px;
+        }
+        
+        .piece-cell {
+            width: 15px;
+            height: 15px;
+            border-radius: 2px;
+        }
+        
+        .selected-pieces {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            min-height: 40px;
+        }
+        
+        .piece-tag {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .piece-tag:hover {
+            background: #0056b3;
+        }
+        
+        .solve-button {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .solve-button:hover {
+            background: #218838;
+        }
+        
+        .solve-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .solution-grid {
+            display: inline-grid;
+            gap: 2px;
+            border: 2px solid #333;
+            padding: 10px;
+            background: #fff;
+            border-radius: 4px;
+        }
+        
+        .solution-cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 0 white, -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .success-message {
+            color: #155724;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tetromino Tiling Solver Demo</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <label>Rectangle Dimensions</label>
+                <div class="slider-container">
+                    <span>Width:</span>
+                    <input type="range" id="width" class="slider" min="2" max="10" value="4">
+                    <span id="widthValue">4</span>
+                </div>
+                <div class="slider-container">
+                    <span>Height:</span>
+                    <input type="range" id="height" class="slider" min="2" max="10" value="3">
+                    <span id="heightValue">3</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Available Pieces</label>
+                <div class="pieces-grid" id="piecesGrid">
+                    <!-- Piece selectors will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Selected Pieces</label>
+                <div class="selected-pieces" id="selectedPieces">
+                    Click on pieces above to add them to your selection
+                </div>
+            </div>
+            
+            <button class="solve-button" id="solveButton">Solve Puzzle</button>
+        </div>
+        
+        <div class="visualization">
+            <h3>Solution</h3>
+            <div id="solutionContainer">
+                Configure dimensions and select pieces, then click "Solve Puzzle"
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import wasmInit, { solve_tetromino } from "./pkg/tetromino.js";
+        
+        // Initialize WASM
+        await wasmInit();
+        
+        // Tetromino definitions with their shapes and colors
+        const tetrominoes = {
+            I: {
+                shape: [[1], [1], [1], [1]],
+                color: '#00FFFF',
+                name: 'I-piece'
+            },
+            J: {
+                shape: [[1, 1, 1], [0, 0, 1]],
+                color: '#0000FF',
+                name: 'J-piece'
+            },
+            L: {
+                shape: [[1, 1, 1], [1, 0, 0]],
+                color: '#FFA500',
+                name: 'L-piece'
+            },
+            O: {
+                shape: [[1, 1], [1, 1]],
+                color: '#FFFF00',
+                name: 'O-piece'
+            },
+            S: {
+                shape: [[0, 1, 1], [1, 1, 0]],
+                color: '#00FF00',
+                name: 'S-piece'
+            },
+            T: {
+                shape: [[1, 1, 1], [0, 1, 0]],
+                color: '#FF00FF',
+                name: 'T-piece'
+            },
+            Z: {
+                shape: [[1, 1, 0], [0, 1, 1]],
+                color: '#FF0000',
+                name: 'Z-piece'
+            }
+        };
+        
+        let selectedPieces = [];
+        
+        // DOM elements
+        const widthSlider = document.getElementById('width');
+        const heightSlider = document.getElementById('height');
+        const widthValue = document.getElementById('widthValue');
+        const heightValue = document.getElementById('heightValue');
+        const piecesGrid = document.getElementById('piecesGrid');
+        const selectedPiecesDiv = document.getElementById('selectedPieces');
+        const solveButton = document.getElementById('solveButton');
+        const solutionContainer = document.getElementById('solutionContainer');
+        
+        // Initialize UI
+        function initUI() {
+            createPieceSelectors();
+            updateSelectedPiecesDisplay();
+            
+            // Add event listeners
+            widthSlider.addEventListener('input', () => {
+                widthValue.textContent = widthSlider.value;
+            });
+            
+            heightSlider.addEventListener('input', () => {
+                heightValue.textContent = heightSlider.value;
+            });
+            
+            solveButton.addEventListener('click', solvePuzzle);
+        }
+        
+        // Create piece selector UI
+        function createPieceSelectors() {
+            piecesGrid.innerHTML = '';
+            
+            Object.keys(tetrominoes).forEach(pieceType => {
+                const piece = tetrominoes[pieceType];
+                const selector = document.createElement('div');
+                selector.className = 'piece-selector';
+                selector.dataset.piece = pieceType;
+                
+                const preview = document.createElement('div');
+                preview.className = 'piece-preview';
+                preview.style.gridTemplateColumns = `repeat(${piece.shape[0].length}, 1fr)`;
+                
+                piece.shape.forEach(row => {
+                    row.forEach(cell => {
+                        const cellDiv = document.createElement('div');
+                        cellDiv.className = 'piece-cell';
+                        cellDiv.style.backgroundColor = cell ? piece.color : 'transparent';
+                        preview.appendChild(cellDiv);
+                    });
+                });
+                
+                const label = document.createElement('div');
+                label.textContent = pieceType;
+                label.style.fontSize = '12px';
+                label.style.fontWeight = 'bold';
+                
+                selector.appendChild(preview);
+                selector.appendChild(label);
+                
+                selector.addEventListener('click', () => addPiece(pieceType));
+                piecesGrid.appendChild(selector);
+            });
+        }
+        
+        // Add piece to selection
+        function addPiece(pieceType) {
+            selectedPieces.push(pieceType);
+            updateSelectedPiecesDisplay();
+        }
+        
+        // Remove piece from selection
+        function removePiece(index) {
+            selectedPieces.splice(index, 1);
+            updateSelectedPiecesDisplay();
+        }
+        
+        // Update selected pieces display
+        function updateSelectedPiecesDisplay() {
+            if (selectedPieces.length === 0) {
+                selectedPiecesDiv.innerHTML = 'Click on pieces above to add them to your selection';
+                return;
+            }
+            
+            selectedPiecesDiv.innerHTML = '';
+            selectedPieces.forEach((piece, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'piece-tag';
+                tag.textContent = piece;
+                tag.addEventListener('click', () => removePiece(index));
+                selectedPiecesDiv.appendChild(tag);
+            });
+        }
+        
+        // Solve the puzzle
+        function solvePuzzle() {
+            const width = parseInt(widthSlider.value);
+            const height = parseInt(heightSlider.value);
+            
+            if (selectedPieces.length === 0) {
+                showError('Please select at least one piece');
+                return;
+            }
+            
+            solveButton.disabled = true;
+            solveButton.textContent = 'Solving...';
+            solutionContainer.innerHTML = 'Computing solution...';
+            
+            // Use setTimeout to allow UI to update
+            setTimeout(() => {
+                try {
+                    const solution = solve_tetromino(height, width, selectedPieces);
+                    displaySolution(solution, width, height);
+                    showSuccess(`Solution found! Used ${selectedPieces.length} pieces.`);
+                } catch (error) {
+                    showError('No solution found. Try different dimensions or piece selection.');
+                    solutionContainer.innerHTML = 'No solution exists for this configuration.';
+                } finally {
+                    solveButton.disabled = false;
+                    solveButton.textContent = 'Solve Puzzle';
+                }
+            }, 100);
+        }
+        
+        // Display the solution
+        function displaySolution(solution, width, height) {
+            const grid = document.createElement('div');
+            grid.className = 'solution-grid';
+            grid.style.gridTemplateColumns = `repeat(${width}, 1fr)`;
+            
+            for (let row = 0; row < height; row++) {
+                for (let col = 0; col < width; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'solution-cell';
+                    
+                    const pieceType = solution[row][col];
+                    const piece = tetrominoes[pieceType];
+                    
+                    cell.style.backgroundColor = piece.color;
+                    cell.textContent = pieceType;
+                    
+                    grid.appendChild(cell);
+                }
+            }
+            
+            solutionContainer.innerHTML = '';
+            solutionContainer.appendChild(grid);
+        }
+        
+        // Show error message
+        function showError(message) {
+            const existing = document.querySelector('.error-message, .success-message');
+            if (existing) existing.remove();
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            solutionContainer.appendChild(errorDiv);
+        }
+        
+        // Show success message
+        function showSuccess(message) {
+            const existing = document.querySelector('.error-message, .success-message');
+            if (existing) existing.remove();
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            solutionContainer.appendChild(successDiv);
+        }
+        
+        // Initialize the application
+        initUI();
+    </script>
+</body>
+</html>
