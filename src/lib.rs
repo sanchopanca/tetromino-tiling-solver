@@ -105,7 +105,7 @@ fn print_figure_to_formatter(
     for row in figure {
         for cell in row {
             match cell {
-                Some(x) => write!(f, "{}", x)?,
+                Some(x) => write!(f, "{x}")?,
                 None => write!(f, " ")?,
             }
         }
@@ -117,7 +117,7 @@ fn print_figure_to_formatter(
 pub fn print_figure(figure: &[Vec<Option<Shape>>]) {
     let mut string = String::new();
     print_figure_to_formatter(figure, &mut string).unwrap();
-    println!("{}", string);
+    println!("{string}");
 }
 
 fn rotate<T: Copy>(figure: &[Vec<Option<T>>]) -> Vec<Vec<Option<T>>> {
@@ -260,7 +260,7 @@ pub fn solve_tetromino(height: u32, width: u32, shapes: Array) -> Array {
                 "S" => Shape::S,
                 "T" => Shape::T,
                 "Z" => Shape::Z,
-                _ => panic!("Unknown shape {:?}", x),
+                _ => panic!("Unknown shape {x:?}"),
             }
         })
         .collect();
